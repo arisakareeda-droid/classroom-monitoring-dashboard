@@ -216,21 +216,21 @@ def apply_theme_css(t: dict):
         width: 6px; height: 6px; border-radius: 50%;
         background: {t['accent']};
     }}
-    .title-main {{
+    .title-main {
         position: relative;
         font-size: 32px;
         font-weight: 600;
-        color: #FFFFFF;
+        color: {t['text']}; /* เปลี่ยนจาก #FFFFFF เป็นสีตามธีม */
         line-height: 1.25;
         letter-spacing: -0.3px;
-    }}
-    .subtitle-main {{
+    }
+    .subtitle-main {
         position: relative;
         font-size: 14px;
-        color: rgba(255,255,255,0.68);
+        color: {t['subtitle']}; /* เปลี่ยนจาก rgba(255,255,255,0.68) เป็นสี subtitle ตามธีม */
         font-weight: 300;
         margin-top: 6px;
-    }}
+    }
 
     /* ---------- Live status strip ---------- */
     .status-strip {{
