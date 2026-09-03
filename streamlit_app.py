@@ -939,10 +939,7 @@ except Exception as e:
         "(Anyone with the link) และคอลัมน์ในชีทมีชื่อถูกต้องตามที่โปรแกรมต้องการ "
         "(เช่น Date, Person Count และคอลัมน์ระบุชื่อห้องเรียน เช่น Room)"
     )
-docs.google.com
-21:56
-จากโค้ดที่คุณให้มาให้ปรับแดชบอร์ดให้สามารถเลือกได้ว่า อยากดุห้องไหน และแสดงกราฟเปรียบเทียบการใช้งานแสดงสัดส่วนของแต่ะละห้อง และความถี่ของการใช้ห้อง
-22:20
+
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
