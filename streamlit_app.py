@@ -855,7 +855,7 @@ try:
                     .sum()
                     .reset_index()
                     .sort_values("Person Count", ascending=True)
-                    .tail(
+                    .tail()
                 )
                 room_fig = px.bar(
                     room_summary,
