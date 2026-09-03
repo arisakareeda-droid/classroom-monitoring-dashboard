@@ -25,7 +25,7 @@ ICONS = {
     "door": """<path d="M5 21V4.5L15 3v18"/><path d="M15 3l4 1.2V21"/>
         <path d="M5 21h14"/><circle cx="12" cy="12.5" r="0.8" fill="currentColor" stroke="none"/>""",
     "peak": """<path d="M3 20h18"/><path d="M5 20l4-9 4 5 3-6 3 10"/>""",
-    "building": """<path d="M6 21V6l7-3v18"/><path d="M13 21V9l5 2v10"/>
+    "classroom": """<path d="M6 21V6l7-3v18"/><path d="M13 21V9l5 2v10"/>
         <path d="M9 9h.01M9 12h.01M9 15h.01"/>""",
 }
 
