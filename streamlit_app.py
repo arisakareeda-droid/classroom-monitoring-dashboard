@@ -998,7 +998,7 @@ def make_circular_favicon(path: str, size: int = 256):
 # ==================================================
 # PAGE CONFIG
 # ==================================================
-FAVICON_PATH = Path(_file_).parent / "favicon.png"
+FAVICON_PATH = Path(__file__).parent / "favicon.png"
 _favicon = (
     make_circular_favicon(str(FAVICON_PATH)) if FAVICON_PATH.exists() else "▪"
 )
