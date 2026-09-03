@@ -1457,11 +1457,10 @@ with st.sidebar:
         "<div class='sidebar-eyebrow'>Display theme</div>", unsafe_allow_html=True
     )
     theme_choice = st.radio(
-        "Display theme",
-        options=["Light", "Dark"],
-        index=0 if st.session_state.theme == "Light" else 1,
-        horizontal=True,
-        label_visibility="collapsed",
+    "Display theme",
+    options=["Light", "Dark"],
+    key="unique_theme_choice_1459",  # <-- เพิ่ม key ที่ไม่ซ้ำกันตรงนี้
+    label_visibility="collapsed",
     )
     st.session_state.theme = theme_choice
     theme = THEMES[theme_choice]
