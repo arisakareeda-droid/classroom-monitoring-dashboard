@@ -622,7 +622,7 @@ with col_title:
         """
         <div class="hero-eyebrow"><span class="dot"></span>REAL-TIME MONITORING</div>
         <div class="title-main">Classroom Occupancy &amp; Activity Monitoring Dashboard</div>
-        <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคารแบบเรียลไทม์ &middot; Faculty of Engineering, Prince of Songkla University</div>
+        <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคารแบบเรียลไทม์ &middot; Faculty of Education, Prince of Songkla University</div>
         """,
         unsafe_allow_html=True,
     )
