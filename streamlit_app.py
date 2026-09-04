@@ -227,7 +227,7 @@ def apply_theme_css(t: dict):
     .subtitle-main {{
         position: relative;
         font-size: 14px;
-        color: rgba(255,255,255,0.68);
+        color: #475467;
         font-weight: 300;
         margin-top: 6px;
     }}
