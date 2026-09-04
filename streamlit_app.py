@@ -220,7 +220,7 @@ def apply_theme_css(t: dict):
         position: relative;
         font-size: 32px;
         font-weight: 600;
-        color: #FFFFFF;
+        color: #101828;
         line-height: 1.25;
         letter-spacing: -0.3px;
     }}
