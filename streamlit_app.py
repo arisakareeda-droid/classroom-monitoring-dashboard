@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
@@ -38,6 +39,20 @@ def icon_svg(name: str, size: int = 18, color: str = "currentColor") -> str:
         f'stroke="{color}" stroke-width="1.6" stroke-linecap="round" '
         f'stroke-linejoin="round">{body}</svg>'
     )
+
+
+def image_to_base64(path: str) -> str:
+    """แปลงไฟล์รูปเป็น base64 data URI เพื่อฝังลงใน HTML บล็อกเดียว
+    (ป้องกันปัญหา div ที่เปิด-ปิดคนละ st.markdown แล้ว browser auto-close ก่อนเวลา)"""
+    p = Path(path)
+    if not p.exists():
+        return ""
+    try:
+        data = p.read_bytes()
+        ext = p.suffix.lstrip(".").lower() or "png"
+        return f"data:image/{ext};base64,{base64.b64encode(data).decode()}"
+    except Exception:
+        return ""
 
 
 def make_circular_favicon(path: str, size: int = 256):
@@ -200,55 +215,73 @@ def apply_theme_css(t: dict):
 
     .stApp {{ background: {t['bg_gradient']}; color: {t['text']}; }}
 
-    /* ---------- Hero header ---------- */
-    .hero-wrap {{
-        position: relative;
-        border-radius: 18px;
-        padding: 26px 30px;
-        margin-bottom: 20px;
-        background: linear-gradient(120deg, {t['primary']} 0%, #133366 55%, {t['primary']} 100%);
-        box-shadow: {t['shadow_hover']};
-        overflow: hidden;
+    /* ---------- Header (บล็อกเดียวทั้งหมด ไม่แยก markdown/columns เพื่อไม่ให้ div หลุด) ---------- */
+    .app-header {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: {t['surface']};
+        border: 1px solid {t['border']};
+        border-radius: 16px;
+        padding: 18px 24px;
+        margin-bottom: 18px;
+        box-shadow: {t['shadow']};
     }}
-    .hero-wrap::before {{
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(circle at 92% -10%, rgba(108,78,240,0.35) 0%, rgba(108,78,240,0) 45%),
-            radial-gradient(circle at 0% 120%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 40%);
-        pointer-events: none;
+    .app-header-left {{
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+    }}
+    .app-header-logo {{
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
     }}
     .hero-eyebrow {{
-        position: relative;
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        font-size: 11.5px;
+        font-size: 11px;
         font-weight: 500;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #B7A8FB;
-        margin-bottom: 8px;
+        color: {t['accent']};
+        margin-bottom: 4px;
     }}
     .hero-eyebrow .dot {{
         width: 6px; height: 6px; border-radius: 50%;
-        background: #B7A8FB;
+        background: {t['accent']};
     }}
     .title-main {{
-        position: relative;
-        font-size: 32px;
+        font-size: 22px;
         font-weight: 600;
-        color: #FFFFFF;
-        line-height: 1.25;
-        letter-spacing: -0.3px;
+        color: {t['text']};
+        line-height: 1.3;
+        letter-spacing: -0.2px;
     }}
     .subtitle-main {{
-        position: relative;
-        font-size: 14px;
-        color: #C7D0E0;
-        font-weight: 300;
-        margin-top: 6px;
+        font-size: 13px;
+        color: {t['subtitle']};
+        font-weight: 400;
+        margin-top: 3px;
+    }}
+    .status-pill {{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: {t['bg']};
+        border: 1px solid {t['border']};
+        border-radius: 20px;
+        padding: 7px 16px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        color: {t['text']};
+        flex-shrink: 0;
     }}
 
     /* ---------- Live status strip ---------- */
@@ -377,6 +410,9 @@ def apply_theme_css(t: dict):
 
     section[data-testid="stSidebar"] .stTextInput input,
     section[data-testid="stSidebar"] .stDateInput input,
+    section[data-testid="stSidebar"] .stDateInput *,
+    section[data-testid="stSidebar"] [data-baseweb="datepicker"] *,
+    section[data-testid="stSidebar"] [data-baseweb="input"] *,
     section[data-testid="stSidebar"] div[data-baseweb="select"] span,
     section[data-testid="stSidebar"] div[data-baseweb="select"] div,
     section[data-testid="stSidebar"] input {{
@@ -391,6 +427,8 @@ def apply_theme_css(t: dict):
 
     section[data-testid="stSidebar"] .stTextInput input,
     section[data-testid="stSidebar"] .stDateInput input,
+    section[data-testid="stSidebar"] [data-baseweb="datepicker"],
+    section[data-testid="stSidebar"] [data-baseweb="input"],
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
         background-color: #FFFFFF !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
@@ -482,7 +520,7 @@ def apply_theme_css(t: dict):
         .title-main {{ font-size: 22px; }}
         .kpi-value {{ font-size: 24px; }}
         .status-strip {{ font-size: 11px; gap: 14px; }}
-        .hero-wrap {{ padding: 20px; }}
+        .app-header {{ padding: 14px 16px; }}
     }}
     </style>
     """,
@@ -615,42 +653,53 @@ st_autorefresh(interval=refresh_seconds * 1000, key="auto_refresh")
 apply_theme_css(theme)
 
 # ==================================================
-# HERO HEADER
-# ==================================================
-st.markdown('<div class="hero-wrap">', unsafe_allow_html=True)
-col_logo, col_title, col_status = st.columns([1.2, 5.8, 2])
-
-with col_logo:
-    try:
-        st.image("logo_proj.png", width=140)
-    except Exception:
-        pass
-
-with col_title:
-    st.markdown(
-        """
-        <div class="hero-eyebrow"><span class="dot"></span>REAL-TIME MONITORING</div>
-        <div class="title-main">Classroom Occupancy &amp; Activity Monitoring Dashboard</div>
-        <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคารแบบเรียลไทม์ &middot; Faculty of Education, Prince of Songkla University</div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-status_placeholder = col_status.empty()
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ==================================================
-# LOAD DATA + STATUS
+# LOAD DATA + STATUS (โหลดก่อนวาดหัวข้อ เพื่อให้สถานะถูกต้องตั้งแต่แรก)
 # ==================================================
 system_online = True
+load_error = ""
+df = None
+room_col = None
 try:
     df = load_data()
-
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-
     room_col = find_room_column(df)
+except Exception as e:
+    system_online = False
+    load_error = str(e)
 
+# ==================================================
+# HEADER (บล็อก HTML เดียว ฝังโลโก้เป็น base64 เพื่อไม่ให้ div หลุดและตัวอักษรมองไม่เห็น)
+# ==================================================
+logo_b64 = image_to_base64("logo_proj.png")
+logo_img_html = (
+    f'<img src="{logo_b64}" class="app-header-logo" alt="logo">' if logo_b64 else ""
+)
+if system_online:
+    status_dot = '<span class="status-online-dot"></span>'
+    status_text = "Online"
+else:
+    status_dot = '<span class="status-offline-dot"></span>'
+    status_text = "Offline"
+
+st.markdown(
+    f"""
+    <div class="app-header">
+        <div class="app-header-left">
+            {logo_img_html}
+            <div>
+                <div class="hero-eyebrow"><span class="dot"></span>REAL-TIME MONITORING</div>
+                <div class="title-main">Classroom Occupancy &amp; Activity Monitoring Dashboard</div>
+                <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคารแบบเรียลไทม์ &middot; Faculty of Education, Prince of Songkla University</div>
+            </div>
+        </div>
+        <div class="status-pill">{status_dot}<span style="text-transform:uppercase;letter-spacing:0.06em;">{status_text}</span></div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+if system_online:
     with st.sidebar:
         if "Date" in df.columns and not df["Date"].isnull().all():
             min_date = df["Date"].min().date()
@@ -694,21 +743,6 @@ try:
             RECORDS &nbsp; {len(df):,}<br>
             SYNCED &nbsp;&nbsp;&nbsp; {datetime.now().strftime('%H:%M:%S')}
             </div>""",
-            unsafe_allow_html=True,
-        )
-
-    with status_placeholder:
-        st.markdown(
-            f"""
-            <div style="display:flex;justify-content:flex-end;">
-                <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.10);
-                    border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:7px 16px;
-                    font-family:'IBM Plex Mono',monospace;font-size:12px;color:#fff;">
-                    <span class="status-online-dot"></span>
-                    <span style="text-transform:uppercase;letter-spacing:0.06em;">Online</span>
-                </div>
-            </div>
-            """,
             unsafe_allow_html=True,
         )
 
@@ -884,6 +918,20 @@ try:
             )
             st.plotly_chart(donut_fig, use_container_width=True)
 
+            breakdown_rows = ""
+            total_val = donut_values.sum()
+            for name, val in zip(donut_names, donut_values):
+                pct = round(val / total_val * 100, 1) if total_val else 0
+                breakdown_rows += (
+                    f'<div style="display:flex;justify-content:space-between;'
+                    f'font-size:12.5px;color:{theme["subtitle"]};padding:3px 0;">'
+                    f'<span>{name}</span><span style="font-weight:500;color:{theme["text"]};">{pct}%</span></div>'
+                )
+            st.markdown(
+                f'<div style="margin-top:4px;">{breakdown_rows}</div>',
+                unsafe_allow_html=True,
+            )
+
         st.markdown("<br>", unsafe_allow_html=True)
 
         col_a, col_b = st.columns(2)
@@ -957,18 +1005,6 @@ try:
                 )
 
     # ==================================================
-    # EXPORT (ไม่แสดงตารางดิบ — มีเฉพาะปุ่มดาวน์โหลด)
-    # ==================================================
-    st.markdown("<br>", unsafe_allow_html=True)
-    csv_data = df.to_csv(index=False).encode("utf-8-sig")
-    st.download_button(
-        label="⬇ Download full report (.CSV)",
-        data=csv_data,
-        file_name="Classroom_Monitoring_Report.csv",
-        mime="text/csv",
-    )
-
-    # ==================================================
     # FOOTER
     # ==================================================
     st.markdown(
@@ -984,20 +1020,7 @@ try:
         unsafe_allow_html=True,
     )
 
-except Exception as e:
-    system_online = False
-    with status_placeholder:
-        st.markdown(
-            """
-            <div style="display:flex;justify-content:flex-end;">
-                <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.10);
-                    border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:7px 16px;
-                    font-family:'IBM Plex Mono',monospace;font-size:12px;color:#fff;">
-                    <span class="status-offline-dot"></span>
-                    <span style="text-transform:uppercase;letter-spacing:0.06em;">Offline / Error</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    st.error(f"ไม่สามารถเชื่อมต่อหรือโหลดข้อมูลจาก Google Sheets ได้ กรุณาตรวจสอบลิงก์ CSV หรือการเชื่อมอินเทอร์เน็ต (Error: {e})")
+else:
+    st.error(
+        f"ไม่สามารถเชื่อมต่อหรือโหลดข้อมูลจาก Google Sheets ได้ กรุณาตรวจสอบลิงก์ CSV หรือการเชื่อมอินเทอร์เน็ต (Error: {load_error})"
+    )
