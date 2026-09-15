@@ -215,6 +215,25 @@ def apply_theme_css(t: dict):
 
     .stApp {{ background: {t['bg_gradient']}; color: {t['text']}; }}
 
+    /* ---------- ลดระยะขอบบนของหน้า ---------- */
+    div[data-testid="stAppViewContainer"] .main .block-container {{
+        padding-top: 1.6rem;
+        padding-bottom: 2rem;
+    }}
+
+    @keyframes fadeInUp {{
+        from {{ opacity: 0; transform: translateY(10px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
+    @keyframes growBar {{
+        from {{ width: 0%; }}
+        to {{ width: var(--w); }}
+    }}
+    @keyframes shimmer {{
+        0% {{ background-position: -200% 0; }}
+        100% {{ background-position: 200% 0; }}
+    }}
+
     /* ---------- Header (บล็อกเดียวทั้งหมด ไม่แยก markdown/columns เพื่อไม่ให้ div หลุด) ---------- */
     .app-header {{
         display: flex;
@@ -228,6 +247,18 @@ def apply_theme_css(t: dict):
         padding: 18px 24px;
         margin-bottom: 18px;
         box-shadow: {t['shadow']};
+        animation: fadeInUp 0.5s ease-out;
+        position: relative;
+        overflow: hidden;
+    }}
+    .app-header::before {{
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, {t['accent']}, transparent, {t['accent']});
+        background-size: 200% 100%;
+        animation: shimmer 4s linear infinite;
     }}
     .app-header-left {{
         display: flex;
@@ -338,6 +369,20 @@ def apply_theme_css(t: dict):
         box-shadow: {t['shadow']};
         overflow: hidden;
         transition: box-shadow 0.25s ease, transform 0.25s ease;
+        animation: fadeInUp 0.5s ease-out backwards;
+    }}
+    div[data-testid="column"]:nth-of-type(1) .kpi-card {{ animation-delay: 0s; }}
+    div[data-testid="column"]:nth-of-type(2) .kpi-card {{ animation-delay: 0.08s; }}
+    div[data-testid="column"]:nth-of-type(3) .kpi-card {{ animation-delay: 0.16s; }}
+    div[data-testid="column"]:nth-of-type(4) .kpi-card {{ animation-delay: 0.24s; }}
+    .kpi-card::after {{
+        content: "";
+        position: absolute;
+        top: -60%; left: -20%;
+        width: 60%; height: 220%;
+        background: rgba(255,255,255,0.10);
+        transform: rotate(20deg);
+        pointer-events: none;
     }}
     .kpi-card:hover {{
         box-shadow: {t['shadow_hover']};
@@ -469,6 +514,49 @@ def apply_theme_css(t: dict):
         box-shadow: {t['shadow']};
     }}
     .footer-card b {{ color: {t['text']}; font-weight: 600; }}
+
+    /* ---------- Animated share bars (แทนตารางตัวเลขธรรมดา) ---------- */
+    .bar-row {{
+        margin-bottom: 12px;
+    }}
+    .bar-row:last-child {{ margin-bottom: 0; }}
+    .bar-label {{
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 12.5px;
+        color: {t['text']};
+        margin-bottom: 5px;
+    }}
+    .bar-label .bar-pct {{
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 600;
+        color: {t['text']};
+    }}
+    .bar-track {{
+        position: relative;
+        height: 10px;
+        border-radius: 6px;
+        background: {t['bg']};
+        border: 1px solid {t['border']};
+        overflow: hidden;
+    }}
+    .bar-fill {{
+        height: 100%;
+        border-radius: 6px;
+        width: var(--w);
+        animation: growBar 1.1s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+        position: relative;
+        overflow: hidden;
+    }}
+    .bar-fill::after {{
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 2.2s linear infinite;
+    }}
 
     /* ---------- Expander ---------- */
     div[data-testid="stExpander"] {{
@@ -920,15 +1008,20 @@ if system_online:
 
             breakdown_rows = ""
             total_val = donut_values.sum()
-            for name, val in zip(donut_names, donut_values):
+            for i, (name, val) in enumerate(zip(donut_names, donut_values)):
                 pct = round(val / total_val * 100, 1) if total_val else 0
-                breakdown_rows += (
-                    f'<div style="display:flex;justify-content:space-between;'
-                    f'font-size:12.5px;color:{theme["subtitle"]};padding:3px 0;">'
-                    f'<span>{name}</span><span style="font-weight:500;color:{theme["text"]};">{pct}%</span></div>'
-                )
+                bar_color = theme["donut_colors"][i % len(theme["donut_colors"])]
+                delay = round(0.15 + i * 0.12, 2)
+                breakdown_rows += f"""
+                <div class="bar-row">
+                    <div class="bar-label"><span>{name}</span><span class="bar-pct">{pct}%</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="--w:{pct}%; background:{bar_color}; animation-delay:{delay}s;"></div>
+                    </div>
+                </div>
+                """
             st.markdown(
-                f'<div style="margin-top:4px;">{breakdown_rows}</div>',
+                f'<div style="margin-top:6px;">{breakdown_rows}</div>',
                 unsafe_allow_html=True,
             )
 
