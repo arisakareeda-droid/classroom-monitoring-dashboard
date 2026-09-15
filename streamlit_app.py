@@ -1,4 +1,5 @@
 import base64
+import re
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
@@ -29,6 +30,9 @@ ICONS = {
     "peak": """<path d="M3 20h18"/><path d="M5 20l4-9 4 5 3-6 3 10"/>""",
     "classroom": """<path d="M6 21V6l7-3v18"/><path d="M13 21V9l5 2v10"/>
         <path d="M9 9h.01M9 12h.01M9 15h.01"/>""",
+    "up": """<path d="M6 15l6-6 6 6"/>""",
+    "down": """<path d="M6 9l6 6 6-6"/>""",
+    "flame": """<path d="M12 2c1 4-4 5-4 9a4 4 0 0 0 8 0c0-1.5-1-2.3-1-3.6 1.6 1 2.5 3 2.5 4.9A5.5 5.5 0 0 1 12 22a5.5 5.5 0 0 1-5.5-5.7C6.5 12 9 9.5 12 2z"/>""",
 }
 
 
@@ -39,6 +43,15 @@ def icon_svg(name: str, size: int = 18, color: str = "currentColor") -> str:
         f'stroke="{color}" stroke-width="1.6" stroke-linecap="round" '
         f'stroke-linejoin="round">{body}</svg>'
     )
+
+
+def clean_html(html: str) -> str:
+    """ลบช่องว่างต้นบรรทัดที่เกินมา เพื่อป้องกันไม่ให้ Streamlit/Markdown
+    ตีความ HTML ที่เรา generate ว่าเป็น "code block" (ต้นเหตุที่ทำให้เห็นแท็ก
+    <div class="bar-row"> ฯลฯ โผล่มาเป็นข้อความดิบแทนที่จะ render ปกติ).
+    ใช้ครอบทุกก้อน HTML ก่อนส่งเข้า st.markdown(unsafe_allow_html=True) เสมอ"""
+    lines = [ln.lstrip() for ln in html.strip("\n").split("\n")]
+    return "\n".join(lines)
 
 
 def image_to_base64(path: str) -> str:
@@ -90,12 +103,11 @@ SHEET_URL = (
 )
 
 # ==================================================
-# THEME STATE — โทนสดใสหลายสี ได้แรงบันดาลใจจาก Dashboard UI การ์ดสี
+# THEME STATE
 # ==================================================
 if "theme" not in st.session_state:
     st.session_state.theme = "Light"
 
-# ชุดสีสำหรับการ์ด KPI แต่ละใบ (ไล่เฉด 2 สี + สีตัวอักษรที่อ่านง่ายบนพื้นสี)
 KPI_PALETTES_LIGHT = [
     {"grad": "linear-gradient(135deg,#8B7CF6 0%,#6C4EF0 100%)", "icon_bg": "rgba(255,255,255,0.22)", "text": "#FFFFFF", "sub": "rgba(255,255,255,0.82)"},
     {"grad": "linear-gradient(135deg,#4FA3F7 0%,#2E6FE0 100%)", "icon_bg": "rgba(255,255,255,0.22)", "text": "#FFFFFF", "sub": "rgba(255,255,255,0.82)"},
@@ -130,7 +142,7 @@ THEMES = {
         "marker_color": "#F5862C",
         "area_color": "#2451A6",
         "bar_scale": [[0, "#D9CFFB"], [0.5, "#8B7CF6"], [1, "#6C4EF0"]],
-        "donut_colors": ["#6C4EF0", "#2E6FE0", "#E8436F", "#F5862C", "#2FBF71"],
+        "donut_colors": ["#6C4EF0", "#2E6FE0", "#E8436F", "#F5862C", "#2FBF71", "#0DB4C9", "#C2410C", "#7C3AED"],
         "footer_bg": "#FFFFFF",
         "success": "#15803D",
         "danger": "#B42318",
@@ -163,7 +175,7 @@ THEMES = {
         "marker_color": "#E69A44",
         "area_color": "#3B6FD6",
         "bar_scale": [[0, "#3A4569"], [0.5, "#7B6EF0"], [1, "#9C8CFB"]],
-        "donut_colors": ["#9C8CFB", "#6EA8FE", "#DA5D89", "#E69A44", "#4ADE80"],
+        "donut_colors": ["#9C8CFB", "#6EA8FE", "#DA5D89", "#E69A44", "#4ADE80", "#22D3EE", "#FB923C", "#C084FC"],
         "footer_bg": "#10162A",
         "success": "#4ADE80",
         "danger": "#F87171",
@@ -178,14 +190,25 @@ THEMES = {
     },
 }
 
+
 def apply_theme_css(t: dict):
     st.markdown(
-        f"""
+        clean_html(
+            f"""
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
     <style>
+    @property --angle {{
+        syntax: '<angle>';
+        initial-value: 0deg;
+        inherits: false;
+    }}
+    @keyframes rotateBorder {{
+        to {{ --angle: 360deg; }}
+    }}
+
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
 
@@ -215,11 +238,11 @@ def apply_theme_css(t: dict):
 
     .stApp {{ background: {t['bg_gradient']}; color: {t['text']}; }}
 
-    /* ---------- ลดระยะขอบบนของหน้า ---------- */
     div[data-testid="stAppViewContainer"] .main .block-container {{
-        padding-top: 1.6rem;
-        padding-bottom: 2rem;
+        padding-top: 1rem;
+        padding-bottom: 1.2rem;
     }}
+    div[data-testid="stVerticalBlock"] {{ gap: 0.6rem; }}
 
     @keyframes fadeInUp {{
         from {{ opacity: 0; transform: translateY(10px); }}
@@ -234,7 +257,29 @@ def apply_theme_css(t: dict):
         100% {{ background-position: 200% 0; }}
     }}
 
-    /* ---------- Header (บล็อกเดียวทั้งหมด ไม่แยก markdown/columns เพื่อไม่ให้ div หลุด) ---------- */
+    /* ---------- เส้นกรอบ "วาดสด" อัตโนมัติ แทนเส้นทึบธรรมดา ---------- */
+    .live-border,
+    div[data-testid="stPlotlyChart"],
+    div[data-testid="stExpander"] {{
+        position: relative;
+    }}
+    .live-border::before,
+    div[data-testid="stPlotlyChart"]::before,
+    div[data-testid="stExpander"]::before {{
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.4px;
+        background: conic-gradient(from var(--angle), transparent 0%, {t['accent']} 10%, {t['marker_color']} 16%, transparent 26%, transparent 100%);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: rotateBorder 3.6s linear infinite;
+        pointer-events: none;
+    }}
+
+    /* ---------- Header ---------- */
     .app-header {{
         display: flex;
         align-items: center;
@@ -243,15 +288,15 @@ def apply_theme_css(t: dict):
         flex-wrap: wrap;
         background: {t['surface']};
         border: 1px solid {t['border']};
-        border-radius: 16px;
-        padding: 18px 24px;
-        margin-bottom: 18px;
+        border-radius: 14px;
+        padding: 12px 20px;
+        margin-bottom: 10px;
         box-shadow: {t['shadow']};
         animation: fadeInUp 0.5s ease-out;
         position: relative;
         overflow: hidden;
     }}
-    .app-header::before {{
+    .app-header::after {{
         content: "";
         position: absolute;
         top: 0; left: 0; right: 0;
@@ -263,12 +308,12 @@ def apply_theme_css(t: dict):
     .app-header-left {{
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 14px;
         min-width: 0;
     }}
     .app-header-logo {{
-        width: 52px;
-        height: 52px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
@@ -277,29 +322,29 @@ def apply_theme_css(t: dict):
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 500;
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: {t['accent']};
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }}
     .hero-eyebrow .dot {{
         width: 6px; height: 6px; border-radius: 50%;
         background: {t['accent']};
     }}
     .title-main {{
-        font-size: 22px;
+        font-size: 19px;
         font-weight: 600;
         color: {t['text']};
-        line-height: 1.3;
+        line-height: 1.25;
         letter-spacing: -0.2px;
     }}
     .subtitle-main {{
-        font-size: 13px;
+        font-size: 12px;
         color: {t['subtitle']};
         font-weight: 400;
-        margin-top: 3px;
+        margin-top: 2px;
     }}
     .status-pill {{
         display: inline-flex;
@@ -308,9 +353,9 @@ def apply_theme_css(t: dict):
         background: {t['bg']};
         border: 1px solid {t['border']};
         border-radius: 20px;
-        padding: 7px 16px;
+        padding: 6px 14px;
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 12px;
+        font-size: 11.5px;
         color: {t['text']};
         flex-shrink: 0;
     }}
@@ -319,24 +364,24 @@ def apply_theme_css(t: dict):
     .status-strip {{
         display: flex;
         align-items: center;
-        gap: 22px;
+        gap: 20px;
         background: {t['surface_alpha']};
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid {t['border']};
         border-radius: 10px;
-        padding: 10px 18px;
-        margin: 18px 0 22px 0;
+        padding: 8px 16px;
+        margin: 10px 0 12px 0;
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 12.5px;
+        font-size: 12px;
         color: {t['subtitle']};
         flex-wrap: wrap;
         box-shadow: {t['shadow']};
     }}
     .status-strip .divider {{
-        width: 1px; height: 14px; background: {t['border']};
+        width: 1px; height: 13px; background: {t['border']};
     }}
-    .status-item {{ display: flex; align-items: center; gap: 7px; }}
+    .status-item {{ display: flex; align-items: center; gap: 6px; }}
     .status-item svg {{ flex-shrink: 0; }}
     .status-online-dot {{
         width: 7px; height: 7px; border-radius: 50%;
@@ -360,11 +405,11 @@ def apply_theme_css(t: dict):
         color: {t['text']};
     }}
 
-    /* ---------- KPI cards (พื้นหลังไล่สี ตามการ์ดในภาพตัวอย่าง) ---------- */
+    /* ---------- KPI cards ---------- */
     .kpi-card {{
         position: relative;
-        border-radius: 16px;
-        padding: 20px 22px;
+        border-radius: 14px;
+        padding: 14px 16px;
         height: 100%;
         box-shadow: {t['shadow']};
         overflow: hidden;
@@ -390,15 +435,15 @@ def apply_theme_css(t: dict):
     }}
     .kpi-top {{
         display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 14px;
+        margin-bottom: 8px;
     }}
     .kpi-icon {{
-        width: 38px; height: 38px;
+        width: 32px; height: 32px;
         display: flex; align-items: center; justify-content: center;
-        border-radius: 10px;
+        border-radius: 9px;
     }}
     .kpi-label {{
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -406,41 +451,40 @@ def apply_theme_css(t: dict):
     }}
     .kpi-value {{
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 30px;
+        font-size: 25px;
         font-weight: 600;
         letter-spacing: -0.5px;
     }}
     .kpi-delta {{
-        font-size: 12.5px;
+        font-size: 12px;
         font-weight: 500;
-        margin-top: 6px;
+        margin-top: 4px;
         opacity: 0.9;
     }}
 
     /* ---------- Chart container ---------- */
     div[data-testid="stPlotlyChart"] {{
         background: {t['surface']};
-        border: 1px solid {t['border']};
         border-radius: 14px;
-        padding: 18px;
+        padding: 12px 14px;
         box-shadow: {t['shadow']};
     }}
 
     /* ---------- Section headers ---------- */
     .section-head {{
-        display: flex; align-items: center; gap: 10px;
-        margin: 6px 0 14px 0;
+        display: flex; align-items: center; gap: 9px;
+        margin: 2px 0 8px 0;
     }}
     .section-bar {{
-        width: 3px; height: 18px; border-radius: 2px;
+        width: 3px; height: 16px; border-radius: 2px;
         background: linear-gradient(180deg, {t['accent']}, {t['primary']});
         flex-shrink: 0;
     }}
     .section-title {{
-        font-size: 17px; font-weight: 600; color: {t['text']};
+        font-size: 15.5px; font-weight: 600; color: {t['text']};
     }}
     .section-sub {{
-        font-size: 12.5px; color: {t['subtitle']}; margin-left: 13px;
+        font-size: 12px; color: {t['subtitle']}; margin-left: 12px;
     }}
 
     /* ---------- Sidebar ---------- */
@@ -448,11 +492,9 @@ def apply_theme_css(t: dict):
         background: {t['sidebar_grad']};
         border-right: 1px solid rgba(255,255,255,0.06);
     }}
-
     section[data-testid="stSidebar"] *:not(input):not(select):not(textarea):not([data-baseweb="select"] *) {{
         color: #EDF1F7 !important;
     }}
-
     section[data-testid="stSidebar"] .stTextInput input,
     section[data-testid="stSidebar"] .stDateInput input,
     section[data-testid="stSidebar"] .stDateInput *,
@@ -464,12 +506,10 @@ def apply_theme_css(t: dict):
         color: #101828 !important;
         -webkit-text-fill-color: #101828 !important;
     }}
-
     section[data-testid="stSidebar"] input::placeholder {{
         color: #667085 !important;
         opacity: 1 !important;
     }}
-
     section[data-testid="stSidebar"] .stTextInput input,
     section[data-testid="stSidebar"] .stDateInput input,
     section[data-testid="stSidebar"] [data-baseweb="datepicker"],
@@ -479,7 +519,6 @@ def apply_theme_css(t: dict):
         border: 1px solid rgba(255,255,255,0.2) !important;
         border-radius: 7px;
     }}
-
     .sidebar-eyebrow {{
         font-size: 11px;
         text-transform: uppercase;
@@ -497,7 +536,7 @@ def apply_theme_css(t: dict):
     .sidebar-brandline {{
         height: 1px;
         background: linear-gradient(90deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
-        margin: 16px 0;
+        margin: 12px 0;
         border: none;
     }}
 
@@ -507,38 +546,20 @@ def apply_theme_css(t: dict):
         background: {t['footer_bg']};
         border: 1px solid {t['border']};
         border-radius: 14px;
-        padding: 20px;
-        margin-top: 32px;
+        padding: 14px;
+        margin-top: 14px;
         color: {t['subtitle']};
-        font-size: 13px;
+        font-size: 12.5px;
         box-shadow: {t['shadow']};
     }}
     .footer-card b {{ color: {t['text']}; font-weight: 600; }}
 
-    /* ---------- Animated share bars (แทนตารางตัวเลขธรรมดา) ---------- */
-    .bar-row {{
-        margin-bottom: 12px;
-    }}
-    .bar-row:last-child {{ margin-bottom: 0; }}
-    .bar-label {{
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        font-size: 12.5px;
-        color: {t['text']};
-        margin-bottom: 5px;
-    }}
-    .bar-label .bar-pct {{
-        font-family: 'IBM Plex Mono', monospace;
-        font-weight: 600;
-        color: {t['text']};
-    }}
+    /* ---------- Animated share bars ---------- */
     .bar-track {{
         position: relative;
-        height: 10px;
+        height: 8px;
         border-radius: 6px;
         background: {t['bg']};
-        border: 1px solid {t['border']};
         overflow: hidden;
     }}
     .bar-fill {{
@@ -553,15 +574,76 @@ def apply_theme_css(t: dict):
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
         background-size: 200% 100%;
         animation: shimmer 2.2s linear infinite;
+    }}
+
+    /* ---------- Room usage grid (แยกรายห้อง) ---------- */
+    .room-grid {{
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 12px;
+        margin-top: 2px;
+    }}
+    .room-card {{
+        background: {t['surface']};
+        border-radius: 14px;
+        padding: 14px 16px;
+        box-shadow: {t['shadow']};
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        animation: fadeInUp 0.45s ease-out backwards;
+    }}
+    .room-card:hover {{
+        transform: translateY(-3px);
+        box-shadow: {t['shadow_hover']};
+    }}
+    .room-card-top {{
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 9px;
+    }}
+    .room-card-icon {{
+        width: 30px; height: 30px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }}
+    .room-card-name {{
+        font-size: 13.5px;
+        font-weight: 600;
+        color: {t['text']};
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }}
+    .room-card-pct {{
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 15px;
+        font-weight: 700;
+    }}
+    .room-card-meta {{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 11.5px;
+        color: {t['subtitle']};
+    }}
+    .room-card-peak {{
+        margin-top: 4px;
+        font-size: 11px;
+        color: {t['subtitle']};
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }}
 
     /* ---------- Expander ---------- */
     div[data-testid="stExpander"] {{
         background: {t['surface']};
-        border: 1px solid {t['border']};
         border-radius: 14px;
         box-shadow: {t['shadow']};
     }}
@@ -605,18 +687,20 @@ def apply_theme_css(t: dict):
     }}
 
     @media (max-width: 768px) {{
-        .title-main {{ font-size: 22px; }}
-        .kpi-value {{ font-size: 24px; }}
-        .status-strip {{ font-size: 11px; gap: 14px; }}
-        .app-header {{ padding: 14px 16px; }}
+        .title-main {{ font-size: 18px; }}
+        .kpi-value {{ font-size: 21px; }}
+        .status-strip {{ font-size: 11px; gap: 12px; }}
+        .app-header {{ padding: 12px 14px; }}
+        .room-grid {{ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }}
     }}
     </style>
-    """,
+    """
+        ),
         unsafe_allow_html=True,
     )
 
 
-def style_chart(fig, t: dict, height=380):
+def style_chart(fig, t: dict, height=360):
     fig.update_layout(
         template=t["plotly_template"],
         plot_bgcolor=t["chart_bg"],
@@ -634,7 +718,7 @@ def style_chart(fig, t: dict, height=380):
             title_font=dict(color=t["text"], size=13),
             tickfont=dict(color=t["subtitle"], size=11),
         ),
-        margin=dict(t=20, b=20, l=20, r=20),
+        margin=dict(t=16, b=16, l=16, r=16),
         height=height,
         hoverlabel=dict(
             bgcolor=t["surface"], font_color=t["text"], font_family="Kanit"
@@ -644,29 +728,101 @@ def style_chart(fig, t: dict, height=380):
 
 
 def kpi_card(icon: str, label: str, value: str, delta: str, palette: dict) -> str:
-    return f"""
+    return clean_html(
+        f"""
     <div class="kpi-card" style="background:{palette['grad']};">
         <div class="kpi-top">
             <div class="kpi-label" style="color:{palette['text']};">{label}</div>
             <div class="kpi-icon" style="background:{palette['icon_bg']};">
-                {icon_svg(icon, 18, palette['text'])}
+                {icon_svg(icon, 17, palette['text'])}
             </div>
         </div>
         <div class="kpi-value" style="color:{palette['text']};">{value}</div>
         <div class="kpi-delta" style="color:{palette['sub']};">{delta}</div>
     </div>
     """
+    )
 
 
 def section_header(text: str, sub: str = "") -> str:
     sub_html = f'<span class="section-sub">{sub}</span>' if sub else ""
-    return f"""
+    return clean_html(
+        f"""
     <div class="section-head">
         <span class="section-bar"></span>
         <span class="section-title">{text}</span>
         {sub_html}
     </div>
     """
+    )
+
+
+def build_room_cards(df: pd.DataFrame, room_col: str, theme: dict) -> str:
+    """สร้างการ์ดสัดส่วนการใช้งาน แยกเป็นรายห้องเรียนทีละห้อง (ไม่รวมภาพรวม)
+    แต่ละการ์ดมี: % สัดส่วนของห้องนั้นเทียบยอดรวม, แถบสัดส่วนอนิเมชัน,
+    จำนวนคน/จำนวนครั้งที่บันทึก, แนวโน้มเทียบครึ่งช่วงเวลาแรก-หลัง, และวันพีคของห้องนั้น"""
+    grp = (
+        df.groupby(room_col)["Person Count"]
+        .agg(total="sum", records="count")
+        .reset_index()
+        .sort_values("total", ascending=False)
+    )
+    grand_total = grp["total"].sum()
+    palette = theme["donut_colors"]
+
+    dates_sorted = sorted(df["Date"].dropna().unique())
+    mid_point = dates_sorted[len(dates_sorted) // 2] if len(dates_sorted) >= 2 else None
+
+    cards = ""
+    for i, row in grp.reset_index(drop=True).iterrows():
+        room = row[room_col]
+        total = row["total"]
+        records = int(row["records"])
+        pct = round(total / grand_total * 100, 1) if grand_total else 0
+        color = palette[i % len(palette)]
+
+        sub = df[df[room_col] == room]
+        by_date = sub.groupby("Date")["Person Count"].sum()
+        peak_val = int(by_date.max()) if not by_date.empty else 0
+        peak_date = by_date.idxmax() if not by_date.empty else None
+        peak_str = pd.to_datetime(peak_date).strftime("%d/%m") if peak_date is not None else "-"
+
+        trend_html = ""
+        if mid_point is not None:
+            first = sub[sub["Date"] < mid_point]["Person Count"].sum()
+            second = sub[sub["Date"] >= mid_point]["Person Count"].sum()
+            if first > 0:
+                change = round((second - first) / first * 100, 1)
+            else:
+                change = 100.0 if second > 0 else 0.0
+            up = change >= 0
+            trend_color = theme["success"] if up else theme["danger"]
+            trend_icon = icon_svg("up" if up else "down", 11, trend_color)
+            trend_html = (
+                f'<span style="display:inline-flex;align-items:center;gap:2px;'
+                f'color:{trend_color};font-weight:600;">{trend_icon}{abs(change)}%</span>'
+            )
+
+        cards += f"""
+        <div class="room-card live-border">
+            <div class="room-card-top">
+                <div class="room-card-icon" style="background:{color}22;color:{color};">
+                    {icon_svg('classroom', 16, color)}
+                </div>
+                <div class="room-card-name">{room}</div>
+                <div class="room-card-pct" style="color:{color};">{pct}%</div>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" style="--w:{pct}%; background:{color};"></div>
+            </div>
+            <div class="room-card-meta">
+                <span>{int(total):,} คน &middot; {records:,} ครั้ง</span>
+                {trend_html}
+            </div>
+            <div class="room-card-peak">{icon_svg('flame', 12, theme['subtitle'])} พีค {peak_val:,} คน &middot; {peak_str}</div>
+        </div>
+        """
+    return clean_html(f'<div class="room-grid">{cards}</div>')
 
 
 def find_room_column(df: pd.DataFrame):
@@ -682,11 +838,10 @@ def find_room_column(df: pd.DataFrame):
 def load_data():
     df = pd.read_csv(SHEET_URL)
     df.columns = df.columns.str.strip()
-
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce").dt.strftime("%Y-%m-%d")
-
     return df
+
 
 # ==================================================
 # SIDEBAR
@@ -698,14 +853,11 @@ with st.sidebar:
         pass
 
     st.markdown(
-        "<div style='font-weight:600;font-size:16px;margin-top:10px;'>"
-        "Dashboard Controls</div>",
+        "<div style='font-weight:600;font-size:16px;margin-top:8px;'>Dashboard Controls</div>",
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        "<div class='sidebar-eyebrow'>Display theme</div>", unsafe_allow_html=True
-    )
+    st.markdown("<div class='sidebar-eyebrow'>Display theme</div>", unsafe_allow_html=True)
     theme_choice = st.radio(
         "Display theme",
         options=["Light", "Dark"],
@@ -718,10 +870,7 @@ with st.sidebar:
 
     st.markdown("<hr class='sidebar-brandline'/>", unsafe_allow_html=True)
 
-    st.markdown(
-        "<div class='sidebar-eyebrow'>Auto-refresh interval</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<div class='sidebar-eyebrow'>Auto-refresh interval</div>", unsafe_allow_html=True)
     refresh_seconds = st.selectbox(
         "Auto-refresh interval",
         options=[10, 30, 60, 120],
@@ -741,7 +890,7 @@ st_autorefresh(interval=refresh_seconds * 1000, key="auto_refresh")
 apply_theme_css(theme)
 
 # ==================================================
-# LOAD DATA + STATUS (โหลดก่อนวาดหัวข้อ เพื่อให้สถานะถูกต้องตั้งแต่แรก)
+# LOAD DATA + STATUS
 # ==================================================
 system_online = True
 load_error = ""
@@ -757,12 +906,10 @@ except Exception as e:
     load_error = str(e)
 
 # ==================================================
-# HEADER (บล็อก HTML เดียว ฝังโลโก้เป็น base64 เพื่อไม่ให้ div หลุดและตัวอักษรมองไม่เห็น)
+# HEADER
 # ==================================================
 logo_b64 = image_to_base64("logo_proj.png")
-logo_img_html = (
-    f'<img src="{logo_b64}" class="app-header-logo" alt="logo">' if logo_b64 else ""
-)
+logo_img_html = f'<img src="{logo_b64}" class="app-header-logo" alt="logo">' if logo_b64 else ""
 if system_online:
     status_dot = '<span class="status-online-dot"></span>'
     status_text = "Online"
@@ -771,7 +918,8 @@ else:
     status_text = "Offline"
 
 st.markdown(
-    f"""
+    clean_html(
+        f"""
     <div class="app-header">
         <div class="app-header-left">
             {logo_img_html}
@@ -783,7 +931,8 @@ st.markdown(
         </div>
         <div class="status-pill">{status_dot}<span style="text-transform:uppercase;letter-spacing:0.06em;">{status_text}</span></div>
     </div>
-    """,
+    """
+    ),
     unsafe_allow_html=True,
 )
 
@@ -792,14 +941,9 @@ if system_online:
         if "Date" in df.columns and not df["Date"].isnull().all():
             min_date = df["Date"].min().date()
             max_date = df["Date"].max().date()
-            st.markdown(
-                "<div class='sidebar-eyebrow'>Date range</div>",
-                unsafe_allow_html=True,
-            )
+            st.markdown("<div class='sidebar-eyebrow'>Date range</div>", unsafe_allow_html=True)
             date_range = st.date_input(
-                "Date range",
-                [min_date, max_date],
-                label_visibility="collapsed",
+                "Date range", [min_date, max_date], label_visibility="collapsed"
             )
             if len(date_range) == 2:
                 df = df[
@@ -808,13 +952,9 @@ if system_online:
                 ]
 
         if room_col:
-            st.markdown(
-                "<div class='sidebar-eyebrow'>ห้องเรียน</div>", unsafe_allow_html=True
-            )
+            st.markdown("<div class='sidebar-eyebrow'>ห้องเรียน</div>", unsafe_allow_html=True)
             room_options = ["ทั้งหมด"] + sorted(df[room_col].dropna().unique().tolist())
-            room_choice = st.selectbox(
-                "ห้องเรียน", options=room_options, label_visibility="collapsed"
-            )
+            room_choice = st.selectbox("ห้องเรียน", options=room_options, label_visibility="collapsed")
             if room_choice != "ทั้งหมด":
                 df = df[df[room_col] == room_choice]
 
@@ -827,10 +967,12 @@ if system_online:
 
         st.markdown("<hr class='sidebar-brandline'/>", unsafe_allow_html=True)
         st.markdown(
-            f"""<div class="sidebar-meta">
+            clean_html(
+                f"""<div class="sidebar-meta">
             RECORDS &nbsp; {len(df):,}<br>
             SYNCED &nbsp;&nbsp;&nbsp; {datetime.now().strftime('%H:%M:%S')}
-            </div>""",
+            </div>"""
+            ),
             unsafe_allow_html=True,
         )
 
@@ -842,7 +984,8 @@ if system_online:
     # LIVE STATUS STRIP
     # ==================================================
     st.markdown(
-        f"""
+        clean_html(
+            f"""
         <div class="status-strip">
             <div class="status-item">{icon_svg('signal', 15)}<span>Data source: Google Sheets</span></div>
             <div class="divider"></div>
@@ -852,22 +995,20 @@ if system_online:
             <div class="divider"></div>
             <div class="status-item"><span>{len(df):,} records</span></div>
         </div>
-        """,
+        """
+        ),
         unsafe_allow_html=True,
     )
 
     # ==================================================
-    # KPI CARDS (การ์ดสีสันสดใส ไล่เฉด ตามภาพตัวอย่าง)
+    # KPI CARDS
     # ==================================================
     total_records = len(df)
-    has_count = (
-        "Person Count" in df.columns
-        and pd.api.types.is_numeric_dtype(df["Person Count"])
-    )
+    has_count = "Person Count" in df.columns and pd.api.types.is_numeric_dtype(df["Person Count"])
     total_people = int(df["Person Count"].sum()) if has_count else 0
-    average_people = round(df["Person Count"].mean(), 2) if has_count else 0
 
     peak_label = "—"
+    peak_sub = "-"
     if has_count and "Date" in df.columns:
         daily_peak = df.groupby("Date")["Person Count"].sum()
         if not daily_peak.empty:
@@ -875,10 +1016,6 @@ if system_online:
             peak_val = int(daily_peak.max())
             peak_label = f"{peak_val:,} คน"
             peak_sub = pd.to_datetime(peak_date).strftime("%d/%m/%Y")
-        else:
-            peak_sub = "-"
-    else:
-        peak_sub = "-"
 
     active_rooms = df[room_col].nunique() if room_col else None
     palettes = theme["kpi_palettes"]
@@ -891,217 +1028,87 @@ if system_online:
         cols_kpi = [c1, c2, c3]
 
     with cols_kpi[0]:
-        st.markdown(
-            kpi_card("records", "Total Records", f"{total_records:,}", "รายการทั้งหมด", palettes[0]),
-            unsafe_allow_html=True,
-        )
+        st.markdown(kpi_card("records", "Total Records", f"{total_records:,}", "รายการทั้งหมด", palettes[0]), unsafe_allow_html=True)
     with cols_kpi[1]:
-        st.markdown(
-            kpi_card("users", "Total Occupancy", f"{total_people:,}", "ยอดสะสมรวม (ห้องเรียน)", palettes[1]),
-            unsafe_allow_html=True,
-        )
+        st.markdown(kpi_card("users", "Total Occupancy", f"{total_people:,}", "ยอดสะสมรวม (ห้องเรียน)", palettes[1]), unsafe_allow_html=True)
     with cols_kpi[2]:
-        st.markdown(
-            kpi_card("peak", "Peak Day", peak_label, f"วันที่ {peak_sub}", palettes[2]),
-            unsafe_allow_html=True,
-        )
+        st.markdown(kpi_card("peak", "Peak Day", peak_label, f"วันที่ {peak_sub}", palettes[2]), unsafe_allow_html=True)
     if room_col:
         with cols_kpi[3]:
-            st.markdown(
-                kpi_card("door", "Active Classrooms", f"{active_rooms:,}", "ห้องเรียนที่มีการใช้งาน", palettes[3]),
-                unsafe_allow_html=True,
-            )
-
-    st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(kpi_card("door", "Active Classrooms", f"{active_rooms:,}", "ห้องเรียนที่มีการใช้งาน", palettes[3]), unsafe_allow_html=True)
 
     # ==================================================
-    # CHARTS
+    # TREND LINE (full width)
     # ==================================================
     if "Date" in df.columns and "Person Count" in df.columns:
-        daily = (
-            df.groupby("Date")["Person Count"].sum().reset_index().sort_values("Date")
+        daily = df.groupby("Date")["Person Count"].sum().reset_index().sort_values("Date")
+
+        st.markdown(
+            section_header("แนวโน้มการเข้า-ออกห้องเรียนรายวัน", "Classroom Access · Time Series Analysis"),
+            unsafe_allow_html=True,
         )
+        line_fig = px.line(
+            daily, x="Date", y="Person Count", markers=True,
+            color_discrete_sequence=[theme["line_color"]],
+            labels={"Date": "วันที่", "Person Count": "จำนวนผู้เข้าใช้ห้องเรียน (คน)"},
+        )
+        line_fig.update_traces(
+            line=dict(width=2.6, shape="spline"),
+            marker=dict(size=6, color=theme["marker_color"]),
+            fill="tozeroy",
+            fillcolor=theme["accent_soft"],
+        )
+        st.plotly_chart(style_chart(line_fig, theme, 320), use_container_width=True)
 
-        col_line, col_donut = st.columns([2, 1])
-
-        with col_line:
+        # ==================================================
+        # ROOM-BY-ROOM USAGE (แยกรายห้อง ไม่รวมภาพรวม)
+        # ==================================================
+        if room_col:
             st.markdown(
-                section_header(
-                    "แนวโน้มการเข้า-ออกห้องเรียนรายวัน",
-                    "Classroom Access · Time Series Analysis",
-                ),
+                section_header("สัดส่วนการใช้งานแยกรายห้อง", "แต่ละห้องเทียบยอดรวมทั้งหมด · พร้อมแนวโน้มและวันพีค"),
                 unsafe_allow_html=True,
             )
+            st.markdown(build_room_cards(df, room_col, theme), unsafe_allow_html=True)
 
-            line_fig = px.line(
-                daily,
-                x="Date",
-                y="Person Count",
-                markers=True,
-                color_discrete_sequence=[theme["line_color"]],
-                labels={"Date": "วันที่", "Person Count": "จำนวนผู้เข้าใช้ห้องเรียน (คน)"},
-            )
-            line_fig.update_traces(
-                line=dict(width=2.8, shape="spline"),
-                marker=dict(size=7, color=theme["marker_color"]),
-                fill="tozeroy",
-                fillcolor=theme["accent_soft"],
-            )
-            st.plotly_chart(style_chart(line_fig, theme, 380), use_container_width=True)
-
-        with col_donut:
             st.markdown(
-                section_header("สัดส่วนการใช้งาน", "Usage share"),
-                unsafe_allow_html=True,
-            )
-            if room_col:
-                donut_src = (
-                    df.groupby(room_col)["Person Count"].sum().reset_index()
-                    .sort_values("Person Count", ascending=False).head(5)
-                )
-                donut_names = donut_src[room_col]
-                donut_values = donut_src["Person Count"]
-                center_label = "ห้องเรียน"
-            else:
-                daily["Level"] = pd.cut(
-                    daily["Person Count"],
-                    bins=3,
-                    labels=["ต่ำ", "ปานกลาง", "สูง"],
-                )
-                donut_src = daily.groupby("Level", observed=True)["Person Count"].sum().reset_index()
-                donut_names = donut_src["Level"]
-                donut_values = donut_src["Person Count"]
-                center_label = "ระดับ"
-
-            top_share = 0
-            if donut_values.sum() > 0:
-                top_share = round(donut_values.iloc[0] / donut_values.sum() * 100)
-
-            donut_fig = go.Figure(
-                data=[
-                    go.Pie(
-                        labels=donut_names,
-                        values=donut_values,
-                        hole=0.62,
-                        marker=dict(colors=theme["donut_colors"]),
-                        textinfo="none",
-                        sort=False,
-                    )
-                ]
-            )
-            donut_fig.update_layout(
-                template=theme["plotly_template"],
-                paper_bgcolor=theme["chart_bg"],
-                plot_bgcolor=theme["chart_bg"],
-                showlegend=True,
-                legend=dict(orientation="h", yanchor="bottom", y=-0.25, x=0.5, xanchor="center", font=dict(size=10)),
-                margin=dict(t=10, b=10, l=10, r=10),
-                height=380,
-                annotations=[
-                    dict(
-                        text=f"<b>{top_share}%</b><br><span style='font-size:11px'>{center_label}สูงสุด</span>",
-                        x=0.5, y=0.5, showarrow=False, font=dict(size=18, color=theme["text"]),
-                    )
-                ],
-            )
-            st.plotly_chart(donut_fig, use_container_width=True)
-
-            breakdown_rows = ""
-            total_val = donut_values.sum()
-            for i, (name, val) in enumerate(zip(donut_names, donut_values)):
-                pct = round(val / total_val * 100, 1) if total_val else 0
-                bar_color = theme["donut_colors"][i % len(theme["donut_colors"])]
-                delay = round(0.15 + i * 0.12, 2)
-                breakdown_rows += f"""
-                <div class="bar-row">
-                    <div class="bar-label"><span>{name}</span><span class="bar-pct">{pct}%</span></div>
-                    <div class="bar-track">
-                        <div class="bar-fill" style="--w:{pct}%; background:{bar_color}; animation-delay:{delay}s;"></div>
-                    </div>
-                </div>
-                """
-            st.markdown(
-                f'<div style="margin-top:6px;">{breakdown_rows}</div>',
-                unsafe_allow_html=True,
-            )
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        col_a, col_b = st.columns(2)
-
-        with col_a:
-            st.markdown(
-                section_header(
-                    "สัดส่วนการใช้งานรายวัน", "Daily Distribution"
-                ),
+                section_header("สัดส่วนการใช้งานรายวัน", "Daily Distribution"),
                 unsafe_allow_html=True,
             )
             bar_fig = px.bar(
-                daily,
-                x="Date",
-                y="Person Count",
-                color="Person Count",
+                daily, x="Date", y="Person Count", color="Person Count",
                 color_continuous_scale=theme["bar_scale"],
                 labels={"Date": "วันที่", "Person Count": "จำนวนคน"},
             )
             bar_fig.update_traces(marker_line_width=0)
             bar_fig.update_layout(coloraxis_showscale=False)
-            st.plotly_chart(
-                style_chart(bar_fig, theme, 350), use_container_width=True
-            )
-
-        with col_b:
-            if room_col:
-                st.markdown(
-                    section_header(
-                        "ห้องเรียนยอดนิยม", "Top Classrooms by Usage"
-                    ),
-                    unsafe_allow_html=True,
-                )
-                room_summary = (
-                    df.groupby(room_col)["Person Count"]
-                    .sum()
-                    .reset_index()
-                    .sort_values("Person Count", ascending=True)
-                    .tail()
-                )
-                room_fig = px.bar(
-                    room_summary,
-                    x="Person Count",
-                    y=room_col,
-                    orientation="h",
-                    color="Person Count",
+            st.plotly_chart(style_chart(bar_fig, theme, 320), use_container_width=True)
+        else:
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(section_header("สัดส่วนการใช้งานรายวัน", "Daily Distribution"), unsafe_allow_html=True)
+                bar_fig = px.bar(
+                    daily, x="Date", y="Person Count", color="Person Count",
                     color_continuous_scale=theme["bar_scale"],
-                    labels={"Person Count": "จำนวนคนสะสม", room_col: "ห้องเรียน"},
+                    labels={"Date": "วันที่", "Person Count": "จำนวนคน"},
                 )
-                room_fig.update_traces(marker_line_width=0)
-                room_fig.update_layout(coloraxis_showscale=False)
-                st.plotly_chart(
-                    style_chart(room_fig, theme, 350), use_container_width=True
-                )
-            else:
-                st.markdown(
-                    section_header(
-                        "ความหนาแน่นสะสม", "Cumulative Area Trend"
-                    ),
-                    unsafe_allow_html=True,
-                )
+                bar_fig.update_traces(marker_line_width=0)
+                bar_fig.update_layout(coloraxis_showscale=False)
+                st.plotly_chart(style_chart(bar_fig, theme, 320), use_container_width=True)
+            with col_b:
+                st.markdown(section_header("ความหนาแน่นสะสม", "Cumulative Area Trend"), unsafe_allow_html=True)
                 area_fig = px.area(
-                    daily,
-                    x="Date",
-                    y="Person Count",
+                    daily, x="Date", y="Person Count",
                     color_discrete_sequence=[theme["area_color"]],
                     labels={"Date": "วันที่", "Person Count": "จำนวนคน"},
                 )
-                st.plotly_chart(
-                    style_chart(area_fig, theme, 350), use_container_width=True
-                )
+                st.plotly_chart(style_chart(area_fig, theme, 320), use_container_width=True)
 
     # ==================================================
     # FOOTER
     # ==================================================
     st.markdown(
-        f"""
+        clean_html(
+            f"""
         <div class="footer-card">
             <b>Classroom Occupancy &amp; Analytics Dashboard</b><br>
             Prince of Songkla University &middot; Faculty of Engineering<br>
@@ -1109,7 +1116,8 @@ if system_online:
                 Academic Project 2026 &middot; Streamlit &amp; Python &middot; Theme: {theme_choice}
             </span>
         </div>
-        """,
+        """
+        ),
         unsafe_allow_html=True,
     )
 
