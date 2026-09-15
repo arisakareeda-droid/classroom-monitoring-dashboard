@@ -239,10 +239,14 @@ def apply_theme_css(t: dict):
     .stApp {{ background: {t['bg_gradient']}; color: {t['text']}; }}
 
     div[data-testid="stAppViewContainer"] .main .block-container {{
-        padding-top: 1rem;
-        padding-bottom: 1.2rem;
+        padding-top: 0.6rem;
+        padding-bottom: 0.8rem;
     }}
-    div[data-testid="stVerticalBlock"] {{ gap: 0.6rem; }}
+    div[data-testid="stVerticalBlock"] {{ gap: 0.4rem; }}
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{ gap: 0.3rem; }}
+    section[data-testid="stSidebar"] .block-container {{
+        padding-top: 1.2rem;
+    }}
 
     @keyframes fadeInUp {{
         from {{ opacity: 0; transform: translateY(10px); }}
@@ -289,8 +293,8 @@ def apply_theme_css(t: dict):
         background: {t['surface']};
         border: 1px solid {t['border']};
         border-radius: 14px;
-        padding: 12px 20px;
-        margin-bottom: 10px;
+        padding: 10px 18px;
+        margin-bottom: 8px;
         box-shadow: {t['shadow']};
         animation: fadeInUp 0.5s ease-out;
         position: relative;
@@ -364,14 +368,14 @@ def apply_theme_css(t: dict):
     .status-strip {{
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 16px;
         background: {t['surface_alpha']};
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid {t['border']};
         border-radius: 10px;
-        padding: 8px 16px;
-        margin: 10px 0 12px 0;
+        padding: 7px 14px;
+        margin: 8px 0 10px 0;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 12px;
         color: {t['subtitle']};
@@ -409,7 +413,7 @@ def apply_theme_css(t: dict):
     .kpi-card {{
         position: relative;
         border-radius: 14px;
-        padding: 14px 16px;
+        padding: 12px 14px;
         height: 100%;
         box-shadow: {t['shadow']};
         overflow: hidden;
@@ -435,7 +439,7 @@ def apply_theme_css(t: dict):
     }}
     .kpi-top {{
         display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }}
     .kpi-icon {{
         width: 32px; height: 32px;
@@ -466,14 +470,14 @@ def apply_theme_css(t: dict):
     div[data-testid="stPlotlyChart"] {{
         background: {t['surface']};
         border-radius: 14px;
-        padding: 12px 14px;
+        padding: 10px 12px;
         box-shadow: {t['shadow']};
     }}
 
     /* ---------- Section headers ---------- */
     .section-head {{
         display: flex; align-items: center; gap: 9px;
-        margin: 2px 0 8px 0;
+        margin: 2px 0 6px 0;
     }}
     .section-bar {{
         width: 3px; height: 16px; border-radius: 2px;
@@ -525,18 +529,19 @@ def apply_theme_css(t: dict):
         letter-spacing: 0.08em;
         color: rgba(237,241,247,0.55) !important;
         font-weight: 500;
-        margin-top: 4px;
+        margin-top: 2px;
+        margin-bottom: 2px;
     }}
     .sidebar-meta {{
         font-family: 'IBM Plex Mono', monospace;
         font-size: 12px;
         color: rgba(237,241,247,0.75) !important;
-        line-height: 1.9;
+        line-height: 1.7;
     }}
     .sidebar-brandline {{
         height: 1px;
         background: linear-gradient(90deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
-        margin: 12px 0;
+        margin: 8px 0;
         border: none;
     }}
 
@@ -546,8 +551,8 @@ def apply_theme_css(t: dict):
         background: {t['footer_bg']};
         border: 1px solid {t['border']};
         border-radius: 14px;
-        padding: 14px;
-        margin-top: 14px;
+        padding: 12px;
+        margin-top: 10px;
         color: {t['subtitle']};
         font-size: 12.5px;
         box-shadow: {t['shadow']};
@@ -583,13 +588,13 @@ def apply_theme_css(t: dict):
     .room-grid {{
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-        gap: 12px;
+        gap: 10px;
         margin-top: 2px;
     }}
     .room-card {{
         background: {t['surface']};
         border-radius: 14px;
-        padding: 14px 16px;
+        padding: 12px 14px;
         box-shadow: {t['shadow']};
         transition: transform 0.22s ease, box-shadow 0.22s ease;
         animation: fadeInUp 0.45s ease-out backwards;
@@ -853,7 +858,7 @@ with st.sidebar:
         pass
 
     st.markdown(
-        "<div style='font-weight:600;font-size:16px;margin-top:8px;'>Dashboard Controls</div>",
+        "<div style='font-weight:600;font-size:16px;margin-top:4px;'>Dashboard Controls</div>",
         unsafe_allow_html=True,
     )
 
