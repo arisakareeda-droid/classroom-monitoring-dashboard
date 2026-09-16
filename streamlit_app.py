@@ -239,15 +239,23 @@ def apply_theme_css(t: dict):
     .stApp {{ background: {t['bg_gradient']}; color: {t['text']}; }}
 
     div[data-testid="stAppViewContainer"] .main .block-container {{
-        padding-top: 0.2rem;
+        padding-top: 0rem;
         padding-bottom: 1.2rem;
     }}
-    div[data-testid="stVerticalBlock"] {{ gap: 0.85rem; }}
-    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {{ gap: 0.55rem; }}
-    section[data-testid="stSidebar"] .block-container {{
-        padding-top: 0.8rem;
-    }}
+        /* ---------- Global spacing ---------- */
+    div[data-testid="stVerticalBlock"] {
+        gap: 0.65rem;
+    }
 
+    /* ระยะห่างระหว่างแต่ละคอลัมน์ */
+    div[data-testid="stHorizontalBlock"] {
+        gap: 1.1rem;
+    }
+
+    /* ลดช่องว่างที่ Streamlit สร้างรอบแต่ละ element */
+    div[data-testid="element-container"] {
+        margin-bottom: 0.15rem;
+    }
     @keyframes fadeInUp {{
         from {{ opacity: 0; transform: translateY(10px); }}
         to {{ opacity: 1; transform: translateY(0); }}
@@ -294,7 +302,7 @@ def apply_theme_css(t: dict):
         border: 1px solid {t['border']};
         border-radius: 14px;
         padding: 14px 22px;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
         box-shadow: {t['shadow']};
         animation: fadeInUp 0.5s ease-out;
         position: relative;
@@ -375,7 +383,7 @@ def apply_theme_css(t: dict):
         border: 1px solid {t['border']};
         border-radius: 10px;
         padding: 10px 18px;
-        margin: 2px 0 4px 0;
+        margin: 4px 0 8px 0;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 12px;
         color: {t['subtitle']};
@@ -466,19 +474,21 @@ def apply_theme_css(t: dict):
         opacity: 0.9;
     }}
 
-    /* ---------- Chart container ---------- */
-    div[data-testid="stPlotlyChart"] {{
+        div[data-testid="stPlotlyChart"] {
         background: {t['surface']};
         border-radius: 14px;
-        padding: 16px 18px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
         box-shadow: {t['shadow']};
-    }}
+    }
 
-    /* ---------- Section headers ---------- */
-    .section-head {{
-        display: flex; align-items: center; gap: 9px;
-        margin: 4px 0 10px 0;
-    }}
+        /* ---------- Section headers ---------- */
+        .section-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 12px 0 8px 0;
+    }
     .section-bar {{
         width: 3px; height: 16px; border-radius: 2px;
         background: linear-gradient(180deg, {t['accent']}, {t['primary']});
@@ -529,7 +539,7 @@ def apply_theme_css(t: dict):
         letter-spacing: 0.08em;
         color: rgba(237,241,247,0.55) !important;
         font-weight: 500;
-        margin-top: 6px;
+        margin-top: 14px;
         margin-bottom: 4px;
     }}
     .sidebar-meta {{
@@ -584,21 +594,23 @@ def apply_theme_css(t: dict):
         animation: shimmer 2.2s linear infinite;
     }}
 
-    /* ---------- Room usage grid (แยกรายห้อง) ---------- */
-    .room-grid {{
+        .room-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-        gap: 16px;
-        margin-top: 2px;
-    }}
-    .room-card {{
+        gap: 14px;
+        margin-top: 4px;
+        margin-bottom: 10px;
+    }
+        .room-card {
         background: {t['surface']};
         border-radius: 14px;
         padding: 16px 18px;
+        min-height: 132px;
+        box-sizing: border-box;
         box-shadow: {t['shadow']};
         transition: transform 0.22s ease, box-shadow 0.22s ease;
         animation: fadeInUp 0.45s ease-out backwards;
-    }}
+    }
     .room-card:hover {{
         transform: translateY(-3px);
         box-shadow: {t['shadow_hover']};
