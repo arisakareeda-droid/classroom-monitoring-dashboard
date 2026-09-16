@@ -242,20 +242,21 @@ def apply_theme_css(t: dict):
         padding-top: 0rem;
         padding-bottom: 1.2rem;
     }}
-        /* ---------- Global spacing ---------- */
-    div[data-testid="stVerticalBlock"] {
+       /* ---------- Global spacing ---------- */
+    div[data-testid="stVerticalBlock"] {{
         gap: 0.65rem;
-    }
+    }}
 
     /* ระยะห่างระหว่างแต่ละคอลัมน์ */
-    div[data-testid="stHorizontalBlock"] {
+    div[data-testid="stHorizontalBlock"] {{
         gap: 1.1rem;
-    }
+    }}
 
     /* ลดช่องว่างที่ Streamlit สร้างรอบแต่ละ element */
-    div[data-testid="element-container"] {
+    div[data-testid="element-container"] {{
         margin-bottom: 0.15rem;
-    }
+    }}
+
     @keyframes fadeInUp {{
         from {{ opacity: 0; transform: translateY(10px); }}
         to {{ opacity: 1; transform: translateY(0); }}
@@ -474,21 +475,21 @@ def apply_theme_css(t: dict):
         opacity: 0.9;
     }}
 
-        div[data-testid="stPlotlyChart"] {
+         div[data-testid="stPlotlyChart"] {{
         background: {t['surface']};
         border-radius: 14px;
         padding: 14px 16px;
         margin-bottom: 8px;
         box-shadow: {t['shadow']};
-    }
+    }}
 
-        /* ---------- Section headers ---------- */
-        .section-head {
+    /* ---------- Section headers ---------- */
+    .section-head {{
         display: flex;
         align-items: center;
         gap: 9px;
         margin: 12px 0 8px 0;
-    }
+    }}
     .section-bar {{
         width: 3px; height: 16px; border-radius: 2px;
         background: linear-gradient(180deg, {t['accent']}, {t['primary']});
@@ -594,14 +595,15 @@ def apply_theme_css(t: dict):
         animation: shimmer 2.2s linear infinite;
     }}
 
-        .room-grid {
+           .room-grid {{
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
         gap: 14px;
         margin-top: 4px;
         margin-bottom: 10px;
-    }
-        .room-card {
+    }}
+
+    .room-card {{
         background: {t['surface']};
         border-radius: 14px;
         padding: 16px 18px;
@@ -610,7 +612,7 @@ def apply_theme_css(t: dict):
         box-shadow: {t['shadow']};
         transition: transform 0.22s ease, box-shadow 0.22s ease;
         animation: fadeInUp 0.45s ease-out backwards;
-    }
+    }}
     .room-card:hover {{
         transform: translateY(-3px);
         box-shadow: {t['shadow_hover']};
