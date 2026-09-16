@@ -946,7 +946,7 @@ st.markdown(
             <div>
                 <div class="hero-eyebrow"><span class="dot"></span>REAL-TIME MONITORING</div>
                 <div class="title-main">Classroom Occupancy &amp; Activity Monitoring Dashboard</div>
-                <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคารแบบเรียลไทม์ &middot; Faculty of Education, Prince of Songkla University</div>
+                <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคาร &middot; Faculty of Education, Prince of Songkla University</div>
             </div>
         </div>
         <div class="status-pill">{status_dot}<span style="text-transform:uppercase;letter-spacing:0.06em;">{status_text}</span></div>
