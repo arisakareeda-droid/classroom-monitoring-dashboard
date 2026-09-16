@@ -241,6 +241,7 @@ def apply_theme_css(t: dict):
     div[data-testid="stAppViewContainer"] .main .block-container {{
         padding-top: 0rem;
         padding-bottom: 1.2rem;
+        margin-top: -12px;
     }}
        /* ---------- Global spacing ---------- */
     div[data-testid="stVerticalBlock"] {{
