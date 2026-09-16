@@ -1131,7 +1131,7 @@ if system_online:
             f"""
         <div class="footer-card">
             <b>Classroom Occupancy &amp; Analytics Dashboard</b><br>
-            Prince of Songkla University &middot; Faculty of Engineering<br>
+            Prince of Songkla University &middot; Faculty of Education<br>
             <span style="font-size: 12px;">
                 Academic Project 2026 &middot; Streamlit &amp; Python &middot; Theme: {theme_choice}
             </span>
