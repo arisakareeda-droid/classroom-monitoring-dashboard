@@ -566,8 +566,17 @@ def apply_theme_css(t: dict):
     .sidebar-eyebrow.center {{
         text-align: center;
     }}
-    section[data-testid="stSidebar"] div[data-testid="stRadio"],
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div,
+    section[data-testid="stSidebar"] div[data-testid="stElementContainer"]:has(div[data-testid="stRadio"]),
+    section[data-testid="stSidebar"] div.element-container:has(div[data-testid="stRadio"]) {{
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] {{
+        width: auto !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }}
     section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {{
         display: flex !important;
         justify-content: center !important;
@@ -579,15 +588,6 @@ def apply_theme_css(t: dict):
         margin-left: auto !important;
         margin-right: auto !important;
     }}
-    section[data-testid="stSidebar"] div[data-testid="stRadio"],
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div,
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {{
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        width: 100% !important;
-    }}
-
     .sidebar-meta {{
         font-family: 'IBM Plex Mono', monospace;
         font-size: 12px;
@@ -915,7 +915,7 @@ with st.sidebar:
     if _side_logo:
         st.markdown(
             f"<div style='display:flex;justify-content:center;align-items:center;width:100%;margin:4px 0 6px 0;'>"
-            f"<img src='{_side_logo}' alt='logo' style='width:100px;max-width:85%;height:auto;display:block;margin:0 auto;'></div>",
+            f"<img src='{_side_logo}' alt='logo' style='width:170px;max-width:85%;height:auto;display:block;margin:0 auto;'></div>",
             unsafe_allow_html=True,
         )
 
