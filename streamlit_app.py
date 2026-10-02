@@ -544,6 +544,50 @@ def apply_theme_css(t: dict):
         margin-top: 14px;
         margin-bottom: 4px;
     }}
+    .sidebar-logo-wrap {{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 4px 0 6px 0;
+    }}
+    .sidebar-logo-wrap img {{
+        width: 150px;
+        max-width: 80%;
+        height: auto;
+        display: block;
+    }}
+    .sidebar-title {{
+        text-align: center;
+        font-weight: 600;
+        font-size: 18px;
+        margin-top: 8px;
+    }}
+    .sidebar-eyebrow.center {{
+        text-align: center;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stRadio"],
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {{
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stImage"],
+    section[data-testid="stSidebar"] div[data-testid="stImage"] img {{
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stRadio"],
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {{
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }}
+
     .sidebar-meta {{
         font-family: 'IBM Plex Mono', monospace;
         font-size: 12px;
@@ -867,17 +911,20 @@ def load_data():
 # SIDEBAR
 # ==================================================
 with st.sidebar:
-    try:
-        st.image("Logo-Songkla.png", width=80)
-    except Exception:
-        pass
+    _side_logo = image_to_base64("Logo-Songkla.png")
+    if _side_logo:
+        st.markdown(
+            f"<div style='display:flex;justify-content:center;align-items:center;width:100%;margin:4px 0 6px 0;'>"
+            f"<img src='{_side_logo}' alt='logo' style='width:170px;max-width:85%;height:auto;display:block;margin:0 auto;'></div>",
+            unsafe_allow_html=True,
+        )
 
     st.markdown(
-        "<div style='font-weight:600;font-size:16px;margin-top:8px;'>Dashboard Controls</div>",
+        "<div style='text-align:center;width:100%;font-weight:600;font-size:18px;margin-top:8px;'>Dashboard Controls</div>",
         unsafe_allow_html=True,
     )
 
-    st.markdown("<div class='sidebar-eyebrow'>Display theme</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-eyebrow' style='text-align:center;width:100%;'>Display theme</div>", unsafe_allow_html=True)
     theme_choice = st.radio(
         "Display theme",
         options=["Light", "Dark"],
