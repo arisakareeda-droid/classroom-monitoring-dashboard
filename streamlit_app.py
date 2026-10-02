@@ -915,7 +915,7 @@ with st.sidebar:
     if _side_logo:
         st.markdown(
             f"<div style='display:flex;justify-content:center;align-items:center;width:100%;margin:4px 0 6px 0;'>"
-            f"<img src='{_side_logo}' alt='logo' style='width:130px;max-width:85%;height:auto;display:block;margin:0 auto;'></div>",
+            f"<img src='{_side_logo}' alt='logo' style='width:100px;max-width:85%;height:auto;display:block;margin:0 auto;'></div>",
             unsafe_allow_html=True,
         )
 
