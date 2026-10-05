@@ -91,7 +91,7 @@ _favicon = (
 )
 
 st.set_page_config(
-    page_title="Classroom Occupancy & Analytics Dashboard",
+    page_title="Classroom Occupancy Analytics Dashboard",
     page_icon=_favicon,
     layout="wide",
 )
