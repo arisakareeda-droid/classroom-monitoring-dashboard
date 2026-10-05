@@ -992,7 +992,7 @@ st.markdown(
             {logo_img_html}
             <div>
                 <div class="hero-eyebrow"><span class="dot"></span>REAL-TIME MONITORING</div>
-                <div class="title-main">Classroom Occupancy &amp; Activity Monitoring Dashboard</div>
+                <div class="title-main">Classroom Occupancy &amp; Monitoring Dashboard</div>
                 <div class="subtitle-main">ระบบวิเคราะห์ข้อมูลการเข้า-ออกห้องเรียนภายในอาคาร &middot; Faculty of Education, Prince of Songkla University</div>
             </div>
         </div>
